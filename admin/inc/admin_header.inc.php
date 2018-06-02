@@ -1,5 +1,10 @@
 <?php
 include 'inc/admin_functions.inc.php';
+include 'inc/classes/dbh.class.inc.php';
+include 'inc/classes/pagination.class.inc.php';
+include 'inc/classes/posts.class.inc.php';
+
+
 
 ?>
 
