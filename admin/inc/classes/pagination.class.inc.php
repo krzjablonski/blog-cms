@@ -29,12 +29,29 @@ class Pagination extends Dbh {
   // Get total items count
   function total_items(){
     try{
-      $sql = "SELECT COUNT($this->column) FROM $this->table ";
-      if(!empty($this->search)){
-        $query = $this->connection->prepare($sql." WHERE title LIKE ?");
-        $query->bindValue(1, "%".$this->search."%");
+      $column = $this->table.".".$this->column;
+      $sql = "SELECT COUNT($column) FROM $this->table ";
+
+      if(!empty($this->category)){
+        if(!empty($this->search)){
+          $query = $this->connection->prepare($sql.'JOIN posts_categories ON posts_categories.post_id = posts.id
+                                                    JOIN categories ON categories.category_id = posts_categories.category_id
+                                                    WHERE categories.category_name = ? AND title LIKE ?');
+          $query->bindParam(1, $this->category, PDO::PARAM_STR);
+          $query->bindValue(2, "%".$this->search."%");
+        }else{
+          $query = $this->connection->prepare($sql.'JOIN posts_categories ON posts_categories.post_id = posts.id
+                                                    JOIN categories ON categories.category_id = posts_categories.category_id
+                                                    WHERE categories.category_name = ? AND title');
+          $query->bindParam(1, $this->category, PDO::PARAM_STR);
+        }
       }else{
-        $query = $this->connection->prepare($sql);
+        if(!empty($this->search)){
+          $query = $this->connection->prepare($sql." WHERE title LIKE ?");
+          $query->bindValue(1, "%".$this->search."%");
+        }else{
+          $query = $this->connection->prepare($sql);
+        }
       }
       $query->execute();
       $output = $query->fetchColumn(0);

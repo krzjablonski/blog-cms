@@ -37,34 +37,119 @@ class Posts extends Dbh {
   }
 
   public function add_post($vals){
-    // Add post to the database;
-    $sql = "INSERT INTO $this->table VALUES (NULL, ?, ?, ?, ?, ?)";
+    foreach($vals as $val){
+      if(empty($val)){
+        $error_message = "Please fill in all fields";
+        return $error_message;
+      }
+    }
+    $sql = "INSERT INTO posts VALUES (NULL, ?, ?, ?, ?, ?)";
 
     try {
       $query = $this->connect()->prepare($sql);
-      foreach($vals as $key => $val){
-        if(is_int($val)){
-          $query->bindParam($key+1, $val, PDO::PARAM_INT);
-        }else{
-          $query->bindParam($key+1, $val, PDO::PARAM_STR);
-        }
-      }
+      $query->bindParam(1, $vals['image_id'], PDO::PARAM_INT);
+      $query->bindParam(2, $vals['title'], PDO::PARAM_STR);
+      $query->bindParam(3, $vals['text'], PDO::PARAM_STR);
+      $query->bindParam(4, $vals['author_id'], PDO::PARAM_STR);
+      $query->bindParam(5, $vals['publish_date'], PDO::PARAM_STR);
+      $query->execute();
     } catch (Exception $e) {
-      $error_msg = true;
-      echo $e->getMessage();
+      $error_message = "Posts error: ".$e->getMessage();
     }
 
-    if(isset($error_msg)){
-      return 'Error. Please try again later.';
+
+    if(!isset($error_message)){
+      $last_post_id = $this->last_post_id();
+      $connection = $this->connect();
+      foreach($vals['category'] as $cat){
+        try {
+          $sql = "INSERT INTO posts_categories VALUES (NULL, ?, ?)";
+          $query = $connection->prepare($sql);
+          $query->bindParam(1, $last_post_id, PDO::PARAM_INT);
+          $query->bindParam(2, $cat, PDO::PARAM_INT);
+          $query->execute();
+        } catch (Exception $e) {
+          $error_message .= "Category error: ".$e->getMessage()."<br>";
+          echo $error_message;
+        } //end try
+      } //endforeach
+    } //endif
+
+    if(isset($error_message)){
+      return $error_message;
     }else{
-      return 'Sucess';
+      return "success";
     }
-
 
   }
 
-  public function delete_post(){
-    // deletes post from database;
+  private function last_post_id(){
+      try {
+        $query = $this->connect()->query("SELECT id FROM $this->table ORDER BY id DESC LIMIT 1");
+        $output = $query->fetch(PDO::FETCH_ASSOC);
+        $output = $output['id'];
+      } catch (Exception $e) {
+        $error_message = "last_post_id error: ".$e->getMessage();
+      }
+
+      if(isset($error_message)){
+        return $error_message;
+      }else{
+        return $output;
+      }
+
+  }
+
+  public function delete_post($id){
+    $sql_posts = "DELETE FROM $this->table WHERE $this->table.id = ?";
+    if($this->table == 'posts'){
+      $sql_categories = "DELETE FROM posts_categories WHERE posts_categories.post_id = ?";
+    }
+
+    try {
+      $query = $this->connect()->prepare($sql_posts);
+      $query->bindParam(1, $id, PDO::PARAM_STR);
+      $query->execute();
+    } catch (Exception $e) {
+      $status = false;
+      echo "Couldn't remove post: ".$e->getMessage();
+    }
+
+    if(isset($sql_categories)){
+      try {
+        $query = $this->connect()->prepare($sql_categories);
+        $query->bindParam(1, $id, PDO::PARAM_STR);
+        $query->execute();
+      } catch (Exception $e) {
+        $status = false;
+        echo "Couldn't remove categories connection: ".$e->getMessage();
+      }
+
+    }
+    if(isset($status) && $status == false){
+      return false;
+    }else{
+      return true;
+    }
+
+  }
+
+  public static function get_all_categories(){
+    $sql = "SELECT category_id, category_name from categories";
+    $connect = new Dbh;
+    return $connect->connect()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  public static function get_all_authors(){
+    $sql = "SELECT * FROM authors";
+    $connect = new Dbh;
+    try {
+      $query = $connect->connect()->query($sql);
+      return $query->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+
+    }
+
   }
 
   private function get_categories($id){
@@ -88,7 +173,8 @@ class Posts extends Dbh {
 
   public function get_posts(){
     try {
-      $sql = "SELECT * FROM $this->table";
+      $author_id = $this->table.".author_id";
+      $sql = "SELECT * FROM $this->table JOIN authors ON authors.author_id = $author_id ";
       $this->sort = $this->table.'.'.$this->sort;
 
       if(!empty($this->category) && $this->table == 'posts'){
@@ -101,9 +187,9 @@ class Posts extends Dbh {
           $query->bindParam(3, $this->limit, PDO::PARAM_INT);
           $query->bindParam(4, $this->offset, PDO::PARAM_INT);
         }else{
-          $query = $this->connect()->prepare($sql.' JOIN posts_categories ON posts_categories.post_id = posts.id
+          $query = $this->connect()->prepare($sql." JOIN posts_categories ON posts_categories.post_id = posts.id
                                                     JOIN categories ON categories.category_id = posts_categories.category_id
-                                                    WHERE categories.category_name = ? AND title LIKE ? ORDER BY ? LIMIT ? OFFSET ?');
+                                                    WHERE categories.category_name = ? AND title LIKE ? ORDER BY ? LIMIT ? OFFSET ?");
           $query->bindParam(1, $this->category, PDO::PARAM_STR);
           $query->bindValue(2, "%".$this->search."%", PDO::PARAM_STR);
           $query->bindParam(3, $this->sort, PDO::PARAM_STR);
@@ -112,16 +198,19 @@ class Posts extends Dbh {
         }
         $query->execute();
         while($row = $query->fetch(PDO::FETCH_ASSOC)){
+          $output[$row['id']]['id'] = $row['id'];
           $output[$row['id']]['title'] = $row['title'];
           $output[$row['id']]['text'] = $row['text'];
           $output[$row['id']]['author_id'] = $row['author_id'];
+          $output[$row['id']]['author_name'] = $row['author_name'];
           $output[$row['id']]['image_id'] = $row['image_id'];
+          $output[$row['id']]['publish_date'] = $row['publish_date'];
           $output[$row['id']]['categories'][] = $row['category_name'];
         }
 
       }else{
         if(empty($this->search)){
-          $query = $this->connect()->prepare($sql.' ORDER BY ? LIMIT ? OFFSET ?');
+          $query = $this->connect()->prepare($sql." ORDER BY ? LIMIT ? OFFSET ?");
           $query->bindParam(1, $this->sort, PDO::PARAM_STR);
           $query->bindParam(2, $this->limit, PDO::PARAM_INT);
           $query->bindParam(3, $this->offset, PDO::PARAM_INT);
@@ -156,9 +245,9 @@ class Posts extends Dbh {
   }
 
   public function get_single_post($id){
-    $sql = "SELECT * FROM $this->table";
+    $sql = "SELECT * FROM $this->table JOIN Media ON $this->table.image_id = Media.id";
 
-    $query = $this->connect()->prepare($sql. ' WHERE id = ?');
+    $query = $this->connect()->prepare($sql. " WHERE $this->table.id = ?");
     $query->bindParam(1, $id, PDO::PARAM_INT);
     $query->execute();
 
