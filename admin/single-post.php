@@ -35,8 +35,18 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     'category' => filter_input(INPUT_POST, "category", FILTER_SANITIZE_NUMBER_INT, FILTER_FORCE_ARRAY),
   );
 
-  $status = $single_post->add_post($vals);
-  header("location:single-post.php?id=")
+  if(isset($_GET['id'])){
+    $status = $single_post->update_post($id, $vals);
+    if($status == "success"){
+      header("location:single-post.php?id=".$id);
+    }
+  }else{
+    $status = $single_post->add_post($vals);
+    if($status == "success"){
+      header("location:single-post.php?id=".$single_post->last_post_id());
+    }
+  }
+
 }
 ?>
 
@@ -65,7 +75,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
       </div>
       <div class="form-group">
         <label for="publish_date"><h3>Set Publish date<h3></label>
-        <input class="form-control datepicker" type="text" placeholder="choose" name="publish_date" id="publish_date">
+        <input class="form-control datepicker" type="text" placeholder="choose" name="publish_date" id="publish_date" autocomplete="off" >
       </div>
       <div class="form-group">
         <img class="featured-img" src="<?php if(isset($post)){echo "../upload/".$post['file_name']; } ?>" alt="">
@@ -127,12 +137,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         <div class="modal-body">
           <div class="form-group d-flex">
             <?php foreach($media_items as $key => $item): ?>
-              <div class="col-md-3">
-                <label for="image-<?php echo $item['id'] ?>">
-                  <img src="../upload/<?php echo $item['file_name'] ?>" alt="<?php echo $item['alt_tag'] ?>" class="img-thumbnail">
-                  <input class="media_input" data-name="<?php echo $item['file_name'] ?>" hidden type="radio" id="image-<?php echo $item['id'] ?>" name="image_id" value="<?php echo $item['id'] ?>">
-                </label>
-              </div>
+              <?php if($post['image_id'] == $item['id']): ?>
+                <div class="col-md-3">
+                  <label for="image-<?php echo $item['id'] ?>">
+                    <img src="../upload/<?php echo $item['file_name'] ?>" alt="<?php echo $item['alt_tag'] ?>" class="img-thumbnail">
+                    <input checked class="media_input" data-name="<?php echo $item['file_name'] ?>" hidden type="radio" id="image-<?php echo $item['id'] ?>" name="image_id" value="<?php echo $item['id'] ?>">
+                  </label>
+                </div>
+              <?php else: ?>
+                <div class="col-md-3">
+                  <label for="image-<?php echo $item['id'] ?>">
+                    <img src="../upload/<?php echo $item['file_name'] ?>" alt="<?php echo $item['alt_tag'] ?>" class="img-thumbnail">
+                    <input class="media_input" data-name="<?php echo $item['file_name'] ?>" hidden type="radio" id="image-<?php echo $item['id'] ?>" name="image_id" value="<?php echo $item['id'] ?>">
+                  </label>
+                </div>
+              <?php endif; ?>
             <?php endforeach; ?>
           </div>
         </div>

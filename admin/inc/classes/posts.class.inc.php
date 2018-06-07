@@ -43,22 +43,38 @@ class Posts extends Dbh {
         return $error_message;
       }
     }
-    $sql = "INSERT INTO posts VALUES (NULL, ?, ?, ?, ?, ?)";
+
+    $sql_placeholders = array();
+    foreach($vals as $key => $val){
+      if($key != 'category'){
+        $sql_placeholders[] = "?";
+      }
+    }
+
+    $sql_placeholders = implode(', ', $sql_placeholders);
+
+    $sql = "INSERT INTO $this->table VALUES (NULL, $sql_placeholders)";
 
     try {
       $query = $this->connect()->prepare($sql);
-      $query->bindParam(1, $vals['image_id'], PDO::PARAM_INT);
-      $query->bindParam(2, $vals['title'], PDO::PARAM_STR);
-      $query->bindParam(3, $vals['text'], PDO::PARAM_STR);
-      $query->bindParam(4, $vals['author_id'], PDO::PARAM_STR);
-      $query->bindParam(5, $vals['publish_date'], PDO::PARAM_STR);
+      $counter = 1;
+      foreach($vals as $key => $val){
+        if($key != 'category'){
+          if($key == 'image_id' || $key == 'author_id'){
+            $query->bindParam($counter, $vals[$key], PDO::PARAM_INT);
+          }else{
+            $query->bindParam($counter, $vals[$key], PDO::PARAM_STR);
+          }
+        }
+        $counter++;
+      }
       $query->execute();
     } catch (Exception $e) {
       $error_message = "Posts error: ".$e->getMessage();
     }
 
 
-    if(!isset($error_message)){
+    if(!isset($error_message) && $this->table == 'posts'){
       $last_post_id = $this->last_post_id();
       $connection = $this->connect();
       foreach($vals['category'] as $cat){
@@ -83,7 +99,54 @@ class Posts extends Dbh {
 
   }
 
-  private function last_post_id(){
+  public function update_post($id, $vals){
+    foreach($vals as $val){
+      if(empty($val)){
+        $error_message = "Please fill in all fields";
+        return $error_message;
+      }
+    }
+
+    $sql_placeholders = array();
+    foreach($vals as $key => $val){
+      if($key != 'category'){
+        $sql_placeholders[] = " $key = ?";
+      }
+    }
+    $sql_placeholders = implode(', ', $sql_placeholders);
+    $sql = "UPDATE $this->table SET id = ?, $sql_placeholders  WHERE id = ?";
+
+    try {
+      $query = $this->connect()->prepare($sql);
+      $query->bindParam(1, $id, PDO::PARAM_INT);
+      echo "1 ".$id."<br>";
+      $counter = 2;
+      foreach($vals as $key => $val){
+        if($key != 'category'){
+          if($key == 'image_id' || $key == 'author_id'){
+            $query->bindParam($counter, $vals[$key], PDO::PARAM_INT);
+            echo $counter." ".$vals[$key]."<br>";
+          }else{
+            $query->bindParam($counter, $vals[$key], PDO::PARAM_STR);
+            echo $counter." ".$vals[$key]."<br>";
+          }
+          $counter++;
+        }
+      }
+      $query->bindParam($counter, $id, PDO::PARAM_INT);
+      echo $counter." ".$id."<br>";
+      $query->execute();
+    } catch (Exception $e) {
+      $error_message = "Posts error: ".$e->getMessage();
+    }
+    if(isset($error_message)){
+      return $error_message;
+    }else{
+      return "success";
+    }
+  }
+
+  public function last_post_id(){
       try {
         $query = $this->connect()->query("SELECT id FROM $this->table ORDER BY id DESC LIMIT 1");
         $output = $query->fetch(PDO::FETCH_ASSOC);
