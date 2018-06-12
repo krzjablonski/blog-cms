@@ -16,6 +16,20 @@ var button = $('button[data-media_btn=save]');
 button.on('click', function(){
   var selected = $('.media_input:checked');
   var file_name = selected.attr('data-name');
-  console.log(file_name);
   $('.featured-img').attr('src', '../upload/'+file_name);
+});
+
+
+$('#add_image_field').on('change', function(e){
+  var imageName = e.target.files[0].name
+  $('.imageName').html(imageName);
+  $('.image-select i').show();
+  console.log(imageName);
+});
+
+$('.image-select i').on('click', function(e){
+  e.preventDefault();
+  $('form').trigger('reset');
+  $('.imageName').html('Choose Image...');
+  $(this).hide();
 });

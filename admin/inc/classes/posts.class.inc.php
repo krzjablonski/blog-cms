@@ -137,8 +137,38 @@ class Posts extends Dbh {
       echo $counter." ".$id."<br>";
       $query->execute();
     } catch (Exception $e) {
-      $error_message = "Posts error: ".$e->getMessage();
+      $error_message = "Posts error: ".$e->getMessage()."<br>";
     }
+
+    if(!isset($error_message) && $this->table == 'posts'){
+      try {
+        $sql = "DELETE FROM posts_categories
+                WHERE post_id = ?";
+        $query = $this->connect()->prepare($sql);
+        $query->bindParam(1, $id, PDO::PARAM_INT);
+        $query->execute();
+      } catch (Exception $e) {
+        $error_message = "Delete error: ".$e->getMessage()."<br>";
+      }
+    }
+
+    if(!isset($error_message) && $this->table == 'posts'){
+      $connection = $this->connect();
+      foreach($vals['category'] as $cat){
+        try {
+          $sql = "INSERT INTO posts_categories VALUES (NULL, ?, ?)";
+          $query = $connection->prepare($sql);
+          $query->bindParam(1, $id, PDO::PARAM_INT);
+          $query->bindParam(2, $cat, PDO::PARAM_INT);
+          $query->execute();
+        } catch (Exception $e) {
+          $error_message .= "Category error: ".$e->getMessage()."<br>";
+          echo $error_message;
+        } //end try
+      } //endforeach
+    } //endif
+
+
     if(isset($error_message)){
       return $error_message;
     }else{

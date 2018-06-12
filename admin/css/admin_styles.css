@@ -33,4 +33,38 @@ body {
   -moz-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); }
 
+.media-image-container {
+  padding: 10px;
+  background-color: white;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px; }
+
+.media-image {
+  display: block;
+  width: 100%;
+  max-height: 250px;
+  object-fit: cover;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px; }
+
+.delete_image {
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  width: 50px;
+  background-color: #dc3545;
+  border: solid 3px white;
+  border-radius: 50%;
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  cursor: pointer; }
+
+.delete_image:hover {
+  background-color: #b82d3a; }
+
 /*# sourceMappingURL=admin_styles.css.map */

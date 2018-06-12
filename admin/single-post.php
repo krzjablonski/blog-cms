@@ -38,7 +38,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
   if(isset($_GET['id'])){
     $status = $single_post->update_post($id, $vals);
     if($status == "success"){
-      header("location:single-post.php?id=".$id);
+    header("location:single-post.php?id=".$id);
     }
   }else{
     $status = $single_post->add_post($vals);
@@ -75,7 +75,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
       </div>
       <div class="form-group">
         <label for="publish_date"><h3>Set Publish date<h3></label>
-        <input class="form-control datepicker" type="text" placeholder="choose" name="publish_date" id="publish_date" autocomplete="off" >
+        <input class="form-control datepicker" type="text" placeholder="choose" name="publish_date" id="publish_date" autocomplete="off" value="<?php if(isset($post)){echo $post['publish_date'];}elseif(isset($vals['publish_date'])){echo $vals['publish_date'];} ?>">
       </div>
       <div class="form-group">
         <img class="featured-img" src="<?php if(isset($post)){echo "../upload/".$post['file_name']; } ?>" alt="">

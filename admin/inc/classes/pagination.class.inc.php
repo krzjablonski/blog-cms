@@ -32,7 +32,7 @@ class Pagination extends Dbh {
       $column = $this->table.".".$this->column;
       $sql = "SELECT COUNT($column) FROM $this->table ";
 
-      if(!empty($this->category)){
+      if(!empty($this->category) && $this->table = "posts"){
         if(!empty($this->search)){
           $query = $this->connection->prepare($sql.'JOIN posts_categories ON posts_categories.post_id = posts.id
                                                     JOIN categories ON categories.category_id = posts_categories.category_id
@@ -42,7 +42,7 @@ class Pagination extends Dbh {
         }else{
           $query = $this->connection->prepare($sql.'JOIN posts_categories ON posts_categories.post_id = posts.id
                                                     JOIN categories ON categories.category_id = posts_categories.category_id
-                                                    WHERE categories.category_name = ? AND title');
+                                                    WHERE categories.category_name = ?');
           $query->bindParam(1, $this->category, PDO::PARAM_STR);
         }
       }else{
@@ -107,17 +107,19 @@ class Pagination extends Dbh {
     }else{
       $search = "";
     }
+
+    if(isset($this->category)){
+      $category = '&cat='.$this->category;
+    }else{
+      $category = "";
+    }
+
     $output = ' <li class="page-item"><a class="page-link" href="'.end($page).'?cat='.$this->category.$search.'&pg='.$this->prev_page().'"><span aria-hidden="true">&laquo;</span></a></li>';
     for($i=1; $i<=$this->number_of_pages(); $i++){
       if($this->current_page == $i){
         $output .= ' <li class="page-item active"><a class="page-link">'.$i.'</a></li> ';
       }else{
-        if(isset($this->category)){
-          if(isset($args['search'])){}
-          $output .= ' <li class="page-item"><a class="page-link" href="'.end($page).'?cat='.$this->category.$search.'&pg='.$i.'">'.$i.'</a></li>';
-        }else{
-          $output .= ' <li class="page-item"><a class="page-link" href="'.end($page).'?pg='.$i.$search.'">'.$i.'</a></li> ';
-        }
+        $output .= '<li class="page-item"><a href="'.end($page).'?pg='.$i.$category.$search.'" class="page-link">'.$i.'</a></li> ';
       }
     }
     $output .= ' <li class="page-item"><a class="page-link" href="'.end($page).'?cat='.$this->category.$search.'&pg='.$this->next_page().'"><span aria-hidden="true">&raquo;</span></a></li>';

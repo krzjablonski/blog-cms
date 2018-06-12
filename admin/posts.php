@@ -12,7 +12,7 @@ $page_args = array(
   'page' => isset($_GET['page']) ? filter_input(INPUT_GET, "page", FILTER_SANITIZE_STRING) : null,
 );
 
-$pagination = new Pagination($current_page, 4, 'posts', $page_args);
+$pagination = new Pagination($current_page, 2, 'posts', $page_args);
 $args = array(
   'table' => 'posts',
   'offset' => $pagination->get_offset(),
@@ -28,9 +28,6 @@ if(isset($_GET['delete_id'])){
 }
 
 ?>
-<div class="col-md-12">
-  <button class="btn btn-primary" type="button" name="button">Add New Post</button>
-</div>
 <div class="col-md-3 order-md-2">
   <?php if(isset($status) && $status === true):?>
     <div class="alert alert-success" role="alert">
@@ -62,8 +59,12 @@ if(isset($_GET['delete_id'])){
       <a href="posts.php"><div class="btn btn-danger">Reset</div></a>
     </div>
   </form>
-
+  <div class="form-group d-flex justify-content-between align-items-center">
+    <h5 style="margin:0;">Add New Post</h5>
+    <a href="single-post.php"><button class="btn btn-primary"><i class="fas fa-plus"></i></button></a>
+  </div>
 </div>
+
 <div class="col-md-9 order-md-1">
   <ul class="pagination justify-content-end">
     <?php echo $pagination->show_pagination_back(); ?>

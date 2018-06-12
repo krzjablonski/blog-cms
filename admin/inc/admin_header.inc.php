@@ -22,6 +22,39 @@ include 'inc/classes/media.class.inc.php';
   </head>
   <body>
 
+    <div class="container-fluid" style="margin-bottom: 30px;">
+      <div class="row">
+        <div class="col" style="padding: 0;">
+          <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Blog CSM</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+              <ul class="navbar-nav">
+                <li class="nav-item active">
+                  <a class="nav-link" href="#">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="posts.php">Posts</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="pages.php">Pages</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="media.php">Media</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="contact-info.php">Contact</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Main container for the page  -->
     <div class="container">
 
