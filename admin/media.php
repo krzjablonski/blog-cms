@@ -10,25 +10,51 @@ if(isset($_GET['pg'])){
   $current_page = 1;
 }
 
+if(isset($_GET['delete_item'])){
+  $delete_item = filter_input(INPUT_GET, "delete_item", FILTER_SANITIZE_NUMBER_INT);
+  $file_name = filter_input(INPUT_GET, "file_name", FILTER_SANITIZE_STRING);
+
+  if(Media::delete_media($delete_item, $file_name) == 'success'){
+    $status = true;
+  }else{
+    $status = false;
+  }
+
+}
+
 $pagination = new Pagination($current_page, 3, 'media', null);
 
 $media = new Media($pagination->get_limit(), $pagination->get_offset());
 $media_items = $media->get_all_media();
 
 ?>
-
 <div class="col-md-9">
+  <div class="row">
+    <div class="col">
+      <?php if(isset($status) && $status === true):?>
+        <div class="alert alert-success" role="alert">
+          Post deleted successfully
+        </div>
+      <?php elseif(isset($status) && $status === false): ?>
+        <div class="alert alert-danger" role="alert">
+          Error: Couldn't remove post
+        </div>
+      <?php endif ?>
+    </div>
+  </div>
   <div class="row">
     <div class="col">
       <h3 class="mb-5">Media Items</h3>
     </div>
   </div>
-  <div id="images-list" class="row">
-    <?php foreach($media_items as $item): ?>
+  <div id="images-list" class="row mb-5">
+    <?php foreach($media_items as $media_item): ?>
       <div class="col-md-4">
         <div class="media-image-container shadow-sm">
-          <img class="media-image" src="../upload/<?php echo $item['file_name'] ?>" alt="<?php echo $item['alt_tag'] ?>">
-          <div class="delete_image"><i class="fas fa-trash-alt"></i></div>
+          <img class="media-image" src="../upload/<?php echo $media_item['file_name'] ?>" alt="<?php echo $media_item['alt_tag'] ?>">
+          <div class="delete_image">
+            <a href="media.php?delete_item=<?php echo $media_item['id']; ?>&file_name=<?php echo $media_item['file_name']; ?>"><i style="color: white;" class="fas fa-trash-alt"></i></a>
+          </div>
         </div>
       </div>
     <?php endforeach; ?>
@@ -56,5 +82,6 @@ $media_items = $media->get_all_media();
     <input type="submit" class="btn btn-primary btn-block" value="Upload">
   </form>
 </div>
+
 
 <?php include 'inc/admin_footer.inc.php'; ?>

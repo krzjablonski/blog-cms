@@ -63,7 +63,7 @@ class Pagination extends Dbh {
 
   // total number of pages
   public function number_of_pages(){
-    return $this->total_items() / $this->items_per_page;
+    return ceil($this->total_items() / $this->items_per_page);
   }
 
   // Get offset

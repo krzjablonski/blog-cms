@@ -2,7 +2,7 @@ $('.delete_btn').on('click', function(){
   var id = $(this).attr('data-delete');
   var title = $(this).attr('data-title');
   $('li#li_id').html('ID: '+id);
-  $('li#li_title').html('ID: '+title);
+  $('li#li_title').html('Title: '+title);
 
   $('#delete_post_btn').attr('href', '//' + location.host + location.pathname+'?delete_id='+id);
 });

@@ -1,21 +1,21 @@
 <?php
 
-$page_title = 'Posts';
+$page_title = 'Pages';
 $page_dsc = 'All your posts';
 
 include 'inc/admin_header.inc.php';
 
 $args = array(
-  'table' => 'posts',
+  'table' => 'pages',
   'offset' => 0,
   'limit' => 1,
-  'search' => isset($_GET['search']) ? filter_input(INPUT_GET, "search", FILTER_SANITIZE_STRING) : null,
-  'category' => isset($_GET['cat']) ? filter_input(INPUT_GET, "cat", FILTER_SANITIZE_STRING) : null,
+  'search' => null,
+  'category' => null,
 );
 
 $single_post = new Posts($args);
 $categories = Posts::get_all_categories();
-$authors = new Authors;
+$authors =  new Authors;
 $authors_list = $authors->get_all_authors();
 $media = new Media;
 $media_items = $media->get_all_media();
@@ -30,21 +30,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
   $vals = array(
     'image_id' => filter_input(INPUT_POST, "image_id", FILTER_SANITIZE_NUMBER_INT),
     'title' => filter_input(INPUT_POST, "post_title", FILTER_SANITIZE_STRING),
-    'text' => filter_input(INPUT_POST, "post_text", FILTER_SANITIZE_STRING),
+    'content' => filter_input(INPUT_POST, "post_text", FILTER_SANITIZE_SPECIAL_CHARS),
     'author_id' => filter_input(INPUT_POST, "author_id", FILTER_SANITIZE_NUMBER_INT),
     'publish_date' => filter_input(INPUT_POST, "publish_date", FILTER_SANITIZE_STRING),
-    'category' => filter_input(INPUT_POST, "category", FILTER_SANITIZE_NUMBER_INT, FILTER_FORCE_ARRAY),
   );
 
   if(isset($_GET['id'])){
     $status = $single_post->update_post($id, $vals);
     if($status == "success"){
-    header("location:single-post.php?id=".$id);
+    header("location:single-page.php?id=".$id);
     }
   }else{
     $status = $single_post->add_post($vals);
     if($status == "success"){
-      header("location:single-post.php?id=".$single_post->last_post_id());
+      header("location:single-page.php?id=".$single_post->last_post_id());
     }
   }
 
@@ -61,12 +60,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
   <div class="row">
     <div class="col-md-9">
       <div class="form-group">
-        <label for="post_title">Title of the post</label>
+        <label for="post_title">Title of the page</label>
         <input class="form-control" type="text" name="post_title" id="post_title" value="<?php if(isset($post)){echo $post['title'];}elseif(isset($vals['title'])){echo $vals['title'];} ?>">
       </div>
       <div class="form-group">
-        <label for="post_text">Text of the post</label>
-        <textarea class="form-control" rows="30" name="post_text" id="post_text"><?php if(isset($post)){echo $post['text'];}elseif(isset($vals['text'])){echo $vals['text'];} ?></textarea>
+        <label for="post_text">Content of the page</label>
+        <textarea class="form-control" rows="30" name="post_text" id="post_text"><?php if(isset($post)){echo $post['content'];}elseif(isset($vals['content'])){echo $vals['content'];} ?></textarea>
       </div>
     </div>
     <div class="col-md-3">
@@ -90,24 +89,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             }
           ?>
         </button>
-      </div>
-      <div class="form-group">
-        <h3>Categories</h3>
-        <?php
-          foreach($categories as $category){
-            if(isset($post) && in_array($category['category_name'], $post['categories'])){
-              echo "<div class='form-check'>";
-              echo '<input checked class="form-check-input" name="category[]" type="checkbox" value="'.$category['category_id'].'">';
-              echo '<lable class="form-check-label" for="'.$category['category_name'].'">'.$category['category_name'].'</label>';
-              echo '</div>';
-            }else{
-              echo "<div class='form-check'>";
-              echo '<input class="form-check-input" name="category[]" type="checkbox" value="'.$category['category_id'].'">';
-              echo '<lable class="form-check-label" for="'.$category['category_name'].'">'.$category['category_name'].'</label>';
-              echo '</div>';
-            }
-          }
-        ?>
       </div>
       <div class="form-group">
         <label for="Author">Select Author</label>

@@ -12,7 +12,7 @@ class Media extends Dbh{
 
   public function get_all_media(){
     try {
-      $sql = "SELECT * FROM media";
+      $sql = "SELECT * FROM media ORDER BY id DESC";
       if($this->limit !== null && $this->offset !== null){
         $query = $this->connect()->prepare($sql." LIMIT ? OFFSET ?");
         $query->bindParam(1, $this->limit, PDO::PARAM_INT);
@@ -53,7 +53,41 @@ class Media extends Dbh{
 
   }
 
-  public function delete_media(){
+  public static function delete_media($id, $file_name){
+    try {
+      $db = new Dbh;
+      $sql = "DELETE FROM media WHERE id = ?";
+      $query = $db->connect()->prepare($sql);
+      $query->bindParam(1, $id, PDO::PARAM_INT);
+      $query->execute();
+    } catch (Exception $e) {
+      $error_message = $e->getMessage();
+    }
 
+    if(!isset($error_message)){
+      unlink('../upload/'.$file_name);
+      return "success";
+    }else{
+      return $error_message;
+    }
+
+  }
+
+  public function count_media(){
+    $sql = "SELECT COUNT(id) AS \"number\" FROM media";
+    try {
+      $db = new Dbh;
+      $query = $db->connect()->prepare($sql);
+      $query->execute();
+      $output = $query->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      $error_message = $e->getMessage();
+    }
+
+    if(isset($error_message)){
+      return $error_message;
+    }else{
+      return $output;
+    }
   }
 }

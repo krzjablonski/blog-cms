@@ -33,6 +33,7 @@ function uploadMedia(file, bar){
             if(data.toLowerCase() == 'success'){
                 bar.addClass('bg-success');
                 bar.text(data);
+                window.location = window.location.href.split("?")[0];
             }else{
                 bar.attr('aria-now', 100);
                 bar.css('width', "100%");
@@ -48,21 +49,4 @@ function uploadMedia(file, bar){
         }
 
     })
-}
-
-function deleteMediaItem(itemId){
-    $.ajax({
-        type: "POST",
-        url: "/blog-cms/admin/inc/image_upload.inc.php?act=delete",
-        data: {
-            id: itemId
-        },
-        success: function(data){
-            if(data == 'success'){
-                $('#images').html("");
-            }else{
-                alert(data)
-            }
-        }
-    });
 }

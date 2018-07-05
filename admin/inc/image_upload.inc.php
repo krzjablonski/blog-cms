@@ -4,20 +4,8 @@ include "classes\dbh.class.inc.php";
 include "classes\media.class.inc.php";
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
-
-    if(isset($_GET['act'])){
-      switch ($_GET['act']) {
-        case 'upload':
-          upload_image();
-          break;
-        case 'delete':
-          break;
-        default:
-          // code...
-          break;
-      }
-    }
-}
+  upload_image();
+}else echo 'Database Error';
 
 
 function upload_image(){
@@ -56,8 +44,4 @@ function upload_image(){
   }else{
     echo "File Error";
   }
-}
-
-function delete_image(){
-
 }

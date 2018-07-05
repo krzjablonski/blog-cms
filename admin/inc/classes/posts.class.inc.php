@@ -119,22 +119,18 @@ class Posts extends Dbh {
     try {
       $query = $this->connect()->prepare($sql);
       $query->bindParam(1, $id, PDO::PARAM_INT);
-      echo "1 ".$id."<br>";
       $counter = 2;
       foreach($vals as $key => $val){
         if($key != 'category'){
           if($key == 'image_id' || $key == 'author_id'){
             $query->bindParam($counter, $vals[$key], PDO::PARAM_INT);
-            echo $counter." ".$vals[$key]."<br>";
           }else{
             $query->bindParam($counter, $vals[$key], PDO::PARAM_STR);
-            echo $counter." ".$vals[$key]."<br>";
           }
           $counter++;
         }
       }
       $query->bindParam($counter, $id, PDO::PARAM_INT);
-      echo $counter." ".$id."<br>";
       $query->execute();
     } catch (Exception $e) {
       $error_message = "Posts error: ".$e->getMessage()."<br>";
@@ -163,7 +159,6 @@ class Posts extends Dbh {
           $query->execute();
         } catch (Exception $e) {
           $error_message .= "Category error: ".$e->getMessage()."<br>";
-          echo $error_message;
         } //end try
       } //endforeach
     } //endif
@@ -233,17 +228,6 @@ class Posts extends Dbh {
     return $connect->connect()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
   }
 
-  public static function get_all_authors(){
-    $sql = "SELECT * FROM authors";
-    $connect = new Dbh;
-    try {
-      $query = $connect->connect()->query($sql);
-      return $query->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-
-    }
-
-  }
 
   private function get_categories($id){
     $sql = "SELECT category_name FROM categories LEFT JOIN posts_categories ON categories.category_id = posts_categories.category_id WHERE post_id = ?";
@@ -255,7 +239,7 @@ class Posts extends Dbh {
     } catch (Exception $e) {
       echo $e->getMessage();
     }
-
+    $output= array();
     while($row = $query->fetch(PDO::FETCH_ASSOC)){
       $output['categories'][] = $row['category_name'];
     }
@@ -319,7 +303,9 @@ class Posts extends Dbh {
         $output = array();
         while($row = $query->fetch(PDO::FETCH_ASSOC)){
           $output[$row['id']] = $row;
-          $output[$row['id']] = array_merge($output[$row['id']], $this->get_categories($row['id']));
+          if($this->table == 'posts'){
+            $output[$row['id']] = array_merge($output[$row['id']], $this->get_categories($row['id']));
+          }
         }
 
       }
@@ -338,15 +324,35 @@ class Posts extends Dbh {
   }
 
   public function get_single_post($id){
-    $sql = "SELECT * FROM $this->table JOIN Media ON $this->table.image_id = Media.id";
+    $sql = "SELECT * FROM $this->table LEFT JOIN Media ON $this->table.image_id = Media.id";
 
     $query = $this->connect()->prepare($sql. " WHERE $this->table.id = ?");
     $query->bindParam(1, $id, PDO::PARAM_INT);
     $query->execute();
-
     $output = $query->fetch(PDO::FETCH_ASSOC);
-    $output = array_merge($output, $this->get_categories($id));
+
+    if($this->table == 'posts'){
+      $output = array_merge($output, $this->get_categories($id));
+    }
 
     return $output;
     }
+
+  public function count_posts(){
+    $sql = "SELECT COUNT(id) AS \"number\" FROM $this->table";
+    try {
+      $db = new Dbh;
+      $query = $db->connect()->prepare($sql);
+      $query->execute();
+      $output = $query->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      $error_message = $e->getMessage();
+    }
+
+    if(isset($error_message)){
+      return $error_message;
+    }else{
+      return $output;
+    }
   }
+}
