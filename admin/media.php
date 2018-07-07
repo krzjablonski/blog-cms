@@ -13,13 +13,11 @@ if(isset($_GET['pg'])){
 if(isset($_GET['delete_item'])){
   $delete_item = filter_input(INPUT_GET, "delete_item", FILTER_SANITIZE_NUMBER_INT);
   $file_name = filter_input(INPUT_GET, "file_name", FILTER_SANITIZE_STRING);
+  $status = Media::delete_media($delete_item, $file_name);
+}
 
-  if(Media::delete_media($delete_item, $file_name) == 'success'){
-    $status = true;
-  }else{
-    $status = false;
-  }
-
+if(isset($_GET['upload'])){
+  $upload = filter_input(INPUT_GET, "upload", FILTER_SANITIZE_STRING);
 }
 
 $pagination = new Pagination($current_page, 3, 'media', null);
@@ -33,13 +31,22 @@ $media_items = $media->get_all_media();
     <div class="col">
       <?php if(isset($status) && $status === true):?>
         <div class="alert alert-success" role="alert">
-          Post deleted successfully
+          Media deleted successfully
         </div>
       <?php elseif(isset($status) && $status === false): ?>
         <div class="alert alert-danger" role="alert">
-          Error: Couldn't remove post
+          Error: Couldn't delete media item
         </div>
-      <?php endif ?>
+      <?php endif; ?>
+      <?php if(isset($_GET['upload']) && $upload != 'success') : ?>
+        <div class="alert alert-danger" role="alert">
+          <?php echo $upload; ?>
+        </div>
+      <?php elseif(isset($_GET['upload']) && $upload == 'success'): ?>
+        <div class="alert alert-success" role="alert">
+          Media added successfully
+        </div>
+      <?php endif;?>
     </div>
   </div>
   <div class="row">

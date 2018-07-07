@@ -33,12 +33,13 @@ function uploadMedia(file, bar){
             if(data.toLowerCase() == 'success'){
                 bar.addClass('bg-success');
                 bar.text(data);
-                window.location = window.location.href.split("?")[0];
+                window.location = window.location.href.split("?")[0] + '?upload='+data.toLowerCase();
             }else{
                 bar.attr('aria-now', 100);
                 bar.css('width', "100%");
                 bar.addClass('bg-danger');
                 bar.text(data);
+                window.location = window.location.href.split("?")[0] + '?upload='+data;
             }
         },
         error: function(){

@@ -12,45 +12,38 @@ class Media extends Dbh{
 
   public function get_all_media(){
     try {
-      $sql = "SELECT * FROM media ORDER BY id DESC";
+      $sql = "SELECT * FROM media ";
+      $orderby = " ORDER BY id DESC ";
+      $limitAndOffset = " LIMIT ? OFFSET ?";
       if($this->limit !== null && $this->offset !== null){
-        $query = $this->connect()->prepare($sql." LIMIT ? OFFSET ?");
+        $query = $this->connect()->prepare($sql.$orderby.$limitAndOffset);
         $query->bindParam(1, $this->limit, PDO::PARAM_INT);
         $query->bindParam(2, $this->offset, PDO::PARAM_INT);
       }else{
-        $query = $this->connect()->prepare($sql);
+        $query = $this->connect()->prepare($sql.$orderby);
       }
       $query->execute();
       $output = $query->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-      $error_message = "Media Error: ".$e->getMessage();
-    }
-
-    if(isset($error_message)){
-      return false;
-    }else{
       return $output;
+    } catch (Exception $e) {
+      error_log("Media Error: ".$e->getMessage());
+      return false;
     }
   }
 
   public static function add_media($file_name, $alt_tag){
     $dbh = new Dbh;
     try {
-      $sql = "INSERT INTO media VALUES(NULL, ?, ? )";
+      $sql = "INSERT INTO media VALUES (NULL, ?, ? )";
       $query = $dbh->connect()->prepare($sql);
       $query->bindParam(1, $file_name, PDO::PARAM_STR);
       $query->bindParam(2, $alt_tag, PDO::PARAM_STR);
       $query->execute();
+      return true;
     } catch (Exception $e) {
-      $error_message = $e->getMessage();
+      error_log($error_message = $e->getMessage());
+      return false;
     }
-
-    if(isset($error_message)){
-      return $error_message;
-    }else{
-      return "success";
-    }
-
   }
 
   public static function delete_media($id, $file_name){
@@ -59,18 +52,16 @@ class Media extends Dbh{
       $sql = "DELETE FROM media WHERE id = ?";
       $query = $db->connect()->prepare($sql);
       $query->bindParam(1, $id, PDO::PARAM_INT);
-      $query->execute();
+      if($query->execute()){
+        unlink('../upload/'.$file_name);
+        return true;
+      }else{
+        return false;
+      }
     } catch (Exception $e) {
-      $error_message = $e->getMessage();
+      error_log($e->getMessage());
+      return false;
     }
-
-    if(!isset($error_message)){
-      unlink('../upload/'.$file_name);
-      return "success";
-    }else{
-      return $error_message;
-    }
-
   }
 
   public function count_media(){
